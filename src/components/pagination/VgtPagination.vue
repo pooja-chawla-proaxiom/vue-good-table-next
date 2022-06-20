@@ -32,31 +32,53 @@
         :page-text="pageText"
         :info-fn="infoFn"
         :mode="mode" />
-      <button
-        type="button"
-        aria-controls="vgt-table"
-        class="footer__navigation__page-btn"
-        :class="{ disabled: !prevIsPossible }"
-        @click.prevent.stop="previousPage">
-        <span aria-hidden="true" class="chevron" v-bind:class="{ 'left': !rtl, 'right': rtl }"></span>
-        <span>{{prevText}}</span>
-      </button>
-
-      <button
-        type="button"
-        aria-controls="vgt-table"
-        class="footer__navigation__page-btn"
-        :class="{ disabled: !nextIsPossible }"
-        @click.prevent.stop="nextPage">
-        <span>{{nextText}}</span>
-        <span aria-hidden="true" class="chevron" v-bind:class="{ 'right': !rtl, 'left': rtl }"></span>
-      </button>
+      <ul class="pagination">
+        <li class="pagination-item">
+          <button
+            type="button"
+            aria-controls="vgt-table"
+            class="footer__navigation__page-btn"
+            :class="{ disabled: !prevIsPossible }"
+            @click.prevent.stop="previousPage">
+            <span aria-hidden="true" class="chevron" v-bind:class="{ 'left': !rtl, 'right': rtl }"></span>
+            <span>{{prevText}}</span>
+          </button>
+        </li>
+        <li
+          v-for="page in pages"
+          :key="page.name"
+          class="pagination-item"
+        >
+          <button
+            type="button"
+            aria-controls="vgt-table"
+            class="footer__navigation__page-btn"
+            @click.prevent.stop="changePage(page.name)"
+            :class="{ disabled: page.isDisabled }"
+            
+          >
+          <span>{{ page.name }}</span>  
+          </button>
+        </li>
+        <li class="pagination-item">
+          <button
+            type="button"
+            aria-controls="vgt-table"
+            class="footer__navigation__page-btn"
+            :class="{ disabled: !nextIsPossible }"
+            @click.prevent.stop="nextPage">
+            <span>{{nextText}}</span>
+            <span aria-hidden="true" class="chevron" v-bind:class="{ 'right': !rtl, 'left': rtl }"></span>
+          </button>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
 
 <script>
 import VgtPaginationPageInfo from './VgtPaginationPageInfo.vue';
+import VuePaginateAl from 'vue-paginate-al';
 import {
   PAGINATION_MODES,
   DEFAULT_ROWS_PER_PAGE_DROPDOWN
@@ -64,10 +86,14 @@ import {
 
 export default {
   name: 'VgtPagination',
+  components: { VuePaginateAl },
   props: {
     styleClass: { default: 'table table-bordered' },
     total: { default: null },
     perPage: {},
+    maxVisibleButtons: {
+      default: 5
+    },
     rtl: { default: false },
     perPageDropdownEnabled: { default: true },
     customRowsPerPageDropdown: { default() { return []; } },
@@ -136,12 +162,47 @@ export default {
     prevIsPossible() {
       return this.currentPage > 1;
     },
+    startPage() {
+      // When on the first page
+      if (this.currentPage === 1) {
+        return 1;
+      }
+
+      // When on the last page
+      if (this.currentPage === this.total) {
+        return this.total - this.maxVisibleButtons;
+      }
+
+      // When inbetween
+      return this.currentPage - 1;
+    },
+    pages() {
+      const range = [];
+
+      for (
+        let i = this.startPage;
+        i <= Math.min(this.startPage + this.maxVisibleButtons - 1, this.total);
+        i++
+      ) {
+        range.push({
+          name: i,
+          isDisabled: ( i === this.currentPage) || (i > this.pagesCount)
+        });
+      }
+
+      return range;
+    },
   },
 
   methods: {
     getId() {
       return `vgt-select-rpp-${Math.floor(Math.random() * Date.now())}`;
     },
+
+    isPageActive(page) {
+      return this.currentPage === page;
+    },
+
     // Change current page
     changePage(pageNumber, emit = true) {
       if (pageNumber > 0 && this.total > this.currentPerPage * (pageNumber - 1)) {
@@ -230,5 +291,16 @@ export default {
 </script>
 
 <style lang="scss">
+.pagination {
+  list-style-type: none;
+}
 
+.pagination-item {
+  display: inline-block;
+}
+
+.active {
+  background-color: #4AAE9B;
+  color: #ffffff;
+}
 </style>
