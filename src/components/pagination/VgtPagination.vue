@@ -78,7 +78,6 @@
 
 <script>
 import VgtPaginationPageInfo from './VgtPaginationPageInfo.vue';
-import VuePaginateAl from 'vue-paginate-al';
 import {
   PAGINATION_MODES,
   DEFAULT_ROWS_PER_PAGE_DROPDOWN
@@ -86,7 +85,6 @@ import {
 
 export default {
   name: 'VgtPagination',
-  components: { VuePaginateAl },
   props: {
     styleClass: { default: 'table table-bordered' },
     total: { default: null },
